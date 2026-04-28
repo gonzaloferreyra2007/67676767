@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Base de Datos de Empleos</h1>
+            <a href="/" class="btn btn-secondary">Volver al Inicio</a>
+        </div>
+
+        <form action="/tabla" method="GET" class="d-flex mb-4">
+            <input class="form-control me-2" type="search" name="query" placeholder="Buscar por puesto..." value="{{ busqueda }}">
+            <button class="btn btn-primary" type="submit">Buscar</button>
+        </form>
+
+        <div class="table-responsive bg-white p-3 rounded shadow-sm">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Puesto</th>
+                        <th>Industria</th>
+                        <th>Experiencia (Años)</th>
+                        <th>Salario</th>
+                        <th>Remoto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in empleos %}
+                    <tr>
+                        <td>{{ e.job_title }}</td>
+                        <td>{{ e.industry }}</td>
+                        <td>{{ e.experience_years }}</td>
+                        <td>${{ "{:,.2f}".format(e.salary) }}</td>
+                        <td>{{ e.remote_work }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+{% endblock %}
