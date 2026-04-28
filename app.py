@@ -118,14 +118,15 @@ def tabla():
 def simulador():
     df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv'))
     
+    cantidad = 0
+    resultado_simulado = None
+
     # Obtenemos las listas únicas para llenar los desplegables del formulario
     industrias = sorted(df['industry'].unique())
     puestos = sorted(df['job_title'].unique())
     educacion = sorted(df['education_level'].unique())
     tamanos = sorted(df['company_size'].unique())
     ubicaciones = sorted(df['location'].unique())
-
-    resultado_simulado = None
 
     if request.method == 'POST':
         # Capturamos lo que el usuario eligió
@@ -150,7 +151,7 @@ def simulador():
         if f_exp:
             exp_val = int(f_exp)
             query = query[(query['experience_years'] >= exp_val - 2) & (query['experience_years'] <= exp_val + 2)]
-
+        cantidad = len(query)
         # Calculamos el promedio de los resultados filtrados
         if not query.empty:
             resultado_simulado = round(query['salary'].mean(), 2)
@@ -163,7 +164,8 @@ def simulador():
                            educacion=educacion,
                            tamanos=tamanos,
                            ubicaciones=ubicaciones,
-                           resultado=resultado_simulado)
+                           resultado=resultado_simulado,
+                           cantidad_coincidencias=cantidad)
 
 if __name__ == '__main__':
     # El cargar_datos() ya se ejecutó arriba, ahora iniciamos la app

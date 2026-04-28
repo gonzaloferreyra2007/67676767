@@ -64,6 +64,9 @@
                 {% if resultado %}
                 <div class="mt-5 p-4 bg-light rounded-3 text-center border">
                     <h5 class="text-muted text-uppercase small">Resultado de la Simulación</h5>
+                    <p class="text-muted small">
+                        Se encontraron {{ cantidad_coincidencias }} perfiles que coinciden con tu búsqueda.
+                    </p>
                     {% if resultado is number %}
                         <h2 class="display-4 fw-bold text-success">${{ "{:,.2f}".format(resultado) }}</h2>
                         <p class="mb-0 mt-2 text-muted">Promedio anual estimado basado en perfiles similares.</p>
