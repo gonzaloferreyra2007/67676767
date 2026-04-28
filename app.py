@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use("Agg")  # Backend para servidores web
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 
@@ -58,18 +59,39 @@ def index():
     ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
     df = pd.read_csv(ruta_csv)
     
-    # Creamos el gráfico de Salario promedio por Industria
-    plt.figure(figsize=(10, 5))
-    df.groupby('industry')['salary'].mean().sort_values().plot(kind='barh', color='skyblue')
-    plt.title('Salario Promedio por Industria')
-    plt.xlabel('Salario Anual')
+    # 1. Agrupamos por industria y calculamos el promedio REAL de cada una
+    # Usamos .reset_index() para que Pandas no se confunda
+    data_grafico = df.groupby('industry')['salary'].mean().sort_values(ascending=True)
+
+    # 2. Creamos el gráfico con un tamaño que le dé aire
+    plt.figure(figsize=(10, 6))
+    
+    # Usamos colores variados (un degradado) para que se note la distinción
+    colores = plt.cm.viridis(np.linspace(0, 1, len(data_grafico)))
+    
+    data_grafico.plot(kind='barh', color=colores)
+
+    # 3. Ajustamos el eje X para que empiece un poco antes del mínimo 
+    # Esto hace que las diferencias se vean más grandes
+    # 1. Obtenemos el mínimo y el máximo de los promedios
+    min_promedio = data_grafico.min()
+    max_promedio = data_grafico.max()
+
+    # 2. Ajustamos el zoom: 
+    # Que empiece un 1% abajo del mínimo y termine un 1% arriba del máximo
+    plt.xlim(min_promedio * 0.99, max_promedio * 1.01)
+
+    plt.title('Diferencias Salariales por Industria', fontsize=14, pad=15)
+    plt.xlabel('Salario Anual Promedio (USD)')
+    plt.ylabel('Industria')
+    plt.grid(axis='x', linestyle='--', alpha=0.3)
+    
     plt.tight_layout()
     
     nombre_grafico = "salario_industria.png"
     plt.savefig(os.path.join(CHARTS_FOLDER, nombre_grafico))
     plt.close()
 
-    # Datos para las tarjetas de Bootstrap
     total_empleos = len(df)
     promedio_gral = round(df['salary'].mean(), 2)
 
@@ -91,6 +113,57 @@ def tabla():
         resultados = Empleo.query.limit(100).all()
         
     return render_template('tabla.html', empleos=resultados, busqueda=busqueda)
+
+@app.route('/simuladores', methods=['GET', 'POST'])
+def simulador():
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv'))
+    
+    # Obtenemos las listas únicas para llenar los desplegables del formulario
+    industrias = sorted(df['industry'].unique())
+    puestos = sorted(df['job_title'].unique())
+    educacion = sorted(df['education_level'].unique())
+    tamanos = sorted(df['company_size'].unique())
+    ubicaciones = sorted(df['location'].unique())
+
+    resultado_simulado = None
+
+    if request.method == 'POST':
+        # Capturamos lo que el usuario eligió
+        f_puesto = request.form.get('puesto')
+        f_industria = request.form.get('industria')
+        f_exp = request.form.get('experiencia')
+        f_edu = request.form.get('educacion')
+        f_tamano = request.form.get('tamano')
+        f_loc = request.form.get('ubicacion')
+        f_remoto = request.form.get('remoto')
+
+        # Empezamos a filtrar el DataFrame
+        query = df.copy()
+        if f_puesto: query = query[query['job_title'] == f_puesto]
+        if f_industria: query = query[query['industry'] == f_industria]
+        if f_edu: query = query[query['education_level'] == f_edu]
+        if f_tamano: query = query[query['company_size'] == f_tamano]
+        if f_loc: query = query[query['location'] == f_loc]
+        if f_remoto: query = query[query['remote_work'] == f_remoto]
+        
+        # Para la experiencia, buscamos valores cercanos (rango de +/- 2 años)
+        if f_exp:
+            exp_val = int(f_exp)
+            query = query[(query['experience_years'] >= exp_val - 2) & (query['experience_years'] <= exp_val + 2)]
+
+        # Calculamos el promedio de los resultados filtrados
+        if not query.empty:
+            resultado_simulado = round(query['salary'].mean(), 2)
+        else:
+            resultado_simulado = "No hay datos suficientes para esta combinación"
+
+    return render_template('simulador.html', 
+                           industrias=industrias, 
+                           puestos=puestos, 
+                           educacion=educacion,
+                           tamanos=tamanos,
+                           ubicaciones=ubicaciones,
+                           resultado=resultado_simulado)
 
 if __name__ == '__main__':
     # El cargar_datos() ya se ejecutó arriba, ahora iniciamos la app

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white py-3 text-center">
+                <h3 class="mb-0">Simulador de Salario Esperado</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Puesto de Trabajo</label>
+                            <select name="puesto" class="form-select">
+                                <option value="">Cualquiera</option>
+                                {% for p in puestos %}<option value="{{p}}">{{p}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Industria</label>
+                            <select name="industria" class="form-select">
+                                <option value="">Cualquiera</option>
+                                {% for i in industrias %}<option value="{{i}}">{{i}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Años de Experiencia</label>
+                            <input type="number" name="experiencia" class="form-control" placeholder="Ej: 5">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nivel de Educación</label>
+                            <select name="educacion" class="form-select">
+                                <option value="">Cualquiera</option>
+                                {% for e in educacion %}<option value="{{e}}">{{e}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tamaño de Empresa</label>
+                            <select name="tamano" class="form-select">
+                                <option value="">Cualquiera</option>
+                                {% for t in tamanos %}<option value="{{t}}">{{t}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ubicación</label>
+                            <select name="ubicacion" class="form-select">
+                                <option value="">Cualquiera</option>
+                                {% for u in ubicaciones %}<option value="{{u}}">{{u}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">¿Es Remoto?</label>
+                            <select name="remoto" class="form-select">
+                                <option value="">No importa</option>
+                                <option value="Yes">Sí, es remoto</option>
+                                <option value="No">No, es presencial</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold">Calcular Salario Estimado</button>
+                </form>
+
+                {% if resultado %}
+                <div class="mt-5 p-4 bg-light rounded-3 text-center border">
+                    <h5 class="text-muted text-uppercase small">Resultado de la Simulación</h5>
+                    {% if resultado is number %}
+                        <h2 class="display-4 fw-bold text-success">${{ "{:,.2f}".format(resultado) }}</h2>
+                        <p class="mb-0 mt-2 text-muted">Promedio anual estimado basado en perfiles similares.</p>
+                    {% else %}
+                        <h4 class="text-danger">{{ resultado }}</h4>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
