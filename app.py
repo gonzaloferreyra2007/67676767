@@ -120,8 +120,9 @@ def simulador():
     
     cantidad = 0
     resultado_simulado = None
+    # Creamos un diccionario vacío para que el HTML no explote en el primer GET
+    seleccion = {} 
 
-    # Obtenemos las listas únicas para llenar los desplegables del formulario
     industrias = sorted(df['industry'].unique())
     puestos = sorted(df['job_title'].unique())
     educacion = sorted(df['education_level'].unique())
@@ -129,30 +130,30 @@ def simulador():
     ubicaciones = sorted(df['location'].unique())
 
     if request.method == 'POST':
-        # Capturamos lo que el usuario eligió
-        f_puesto = request.form.get('puesto')
-        f_industria = request.form.get('industria')
-        f_exp = request.form.get('experiencia')
-        f_edu = request.form.get('educacion')
-        f_tamano = request.form.get('tamano')
-        f_loc = request.form.get('ubicacion')
-        f_remoto = request.form.get('remoto')
+        # Guardamos lo que el usuario eligió en el diccionario
+        seleccion = {
+            'puesto': request.form.get('puesto'),
+            'industria': request.form.get('industria'),
+            'experiencia': request.form.get('experiencia'),
+            'educacion': request.form.get('educacion'),
+            'tamano': request.form.get('tamano'),
+            'ubicacion': request.form.get('ubicacion'),
+            'remoto': request.form.get('remoto')
+        }
 
-        # Empezamos a filtrar el DataFrame
         query = df.copy()
-        if f_puesto: query = query[query['job_title'] == f_puesto]
-        if f_industria: query = query[query['industry'] == f_industria]
-        if f_edu: query = query[query['education_level'] == f_edu]
-        if f_tamano: query = query[query['company_size'] == f_tamano]
-        if f_loc: query = query[query['location'] == f_loc]
-        if f_remoto: query = query[query['remote_work'] == f_remoto]
+        if seleccion['puesto']: query = query[query['job_title'] == seleccion['puesto']]
+        if seleccion['industria']: query = query[query['industry'] == seleccion['industria']]
+        if seleccion['educacion']: query = query[query['education_level'] == seleccion['educacion']]
+        if seleccion['tamano']: query = query[query['company_size'] == seleccion['tamano']]
+        if seleccion['ubicacion']: query = query[query['location'] == seleccion['ubicacion']]
+        if seleccion['remoto']: query = query[query['remote_work'] == seleccion['remoto']]
         
-        # Para la experiencia, buscamos valores cercanos (rango de +/- 2 años)
-        if f_exp:
-            exp_val = int(f_exp)
+        if seleccion['experiencia']:
+            exp_val = int(seleccion['experiencia'])
             query = query[(query['experience_years'] >= exp_val - 2) & (query['experience_years'] <= exp_val + 2)]
+        
         cantidad = len(query)
-        # Calculamos el promedio de los resultados filtrados
         if not query.empty:
             resultado_simulado = round(query['salary'].mean(), 2)
         else:
@@ -165,7 +166,8 @@ def simulador():
                            tamanos=tamanos,
                            ubicaciones=ubicaciones,
                            resultado=resultado_simulado,
-                           cantidad_coincidencias=cantidad)
+                           cantidad_coincidencias=cantidad,
+                           seleccion=seleccion) 
 
 if __name__ == '__main__':
     # El cargar_datos() ya se ejecutó arriba, ahora iniciamos la app
