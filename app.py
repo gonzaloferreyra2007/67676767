@@ -106,11 +106,12 @@ def tabla():
     busqueda = request.args.get('query', '')
     
     if busqueda:
-        # Buscamos en la base de datos registros que contengan el texto
-        resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%')).all()
+        # Filtramos por puesto Y ordenamos por experiencia de menor a mayor
+        resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%'))\
+                          .order_by(Empleo.experience_years.asc()).all()
     else:
-        # Si no hay búsqueda, mostramos los primeros 100 para que cargue rápido
-        resultados = Empleo.query.limit(100).all()
+        # Si no hay búsqueda, mostramos los primeros 100 ordenados también
+        resultados = Empleo.query.order_by(Empleo.experience_years.asc()).limit(100).all()
         
     return render_template('tabla.html', empleos=resultados, busqueda=busqueda)
 
