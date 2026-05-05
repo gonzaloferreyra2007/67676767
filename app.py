@@ -6,6 +6,7 @@ matplotlib.use("Agg")  # Backend para servidores web
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import plotly.express as px
 
 app = Flask(__name__)
 
@@ -90,8 +91,7 @@ def index():
     
     nombre_grafico = "salario_industria.png"
     plt.savefig(os.path.join(CHARTS_FOLDER, nombre_grafico))
-    plt.close()
-
+    plt.close()   
     total_empleos = len(df)
     promedio_gral = round(df['salary'].mean(), 2)
 
@@ -101,18 +101,45 @@ def index():
                            promedio=promedio_gral)
 
 # 5. Ruta de Tabla con Buscador
-@app.route('/tabla')
+@app.route('/tabla', methods=['GET', 'POST'])
 def tabla():
+    #En "busqueda" guardamos lo que es lo que se subio en el form de HTML
     busqueda = request.args.get('query', '')
-    
+    # Este dataFrame es para el gráfico interactivo.  
+    df2 = pd.read_csv('data/job_salary_prediction_dataset.csv')
+
     if busqueda:
+        df_filtrado = df2[df2['job_title'] == busqueda]
         # Buscamos en la base de datos registros que contengan el texto
         resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%')).all()
     else:
+        df_filtrado = df2
         # Si no hay búsqueda, mostramos los primeros 100 para que cargue rápido
         resultados = Empleo.query.limit(100).all()
-        
-    return render_template('tabla.html', empleos=resultados, busqueda=busqueda)
+    
+    # Crea el gráfico con Plotly.express (px)
+    fig = px.scatter(df_filtrado, x="experience_years", y="salary", 
+                     color="education_level", 
+                     title="Relación Experiencia vs Salario",
+                     hover_data=["job_title", "remote_work"], # Información extra al pasar el mouse
+                     labels={
+                        "experience_years": "Experiencia (Años)",
+                        "salary": "Sueldo ($)",
+                        "job_title": "Puesto",
+                        "education_level": "Nivel Educativo",
+                        "remote_work": "Remoto",
+                        "industry": "Industria", 
+                        "remote_work":"Remoto"})
+    
+    fig.for_each_trace(lambda t: t.update(visible=True if t.name == "Bachelor" else "legendonly"))
+    
+    # Convierte el gráfico a HTML (solo hace el div)
+    graph_html = fig.to_html(full_html=False)
+
+    return render_template('tabla.html',
+                           empleos=resultados,
+                           busqueda=busqueda,
+                           plot_div=graph_html)
 
 @app.route('/simuladores', methods=['GET', 'POST'])
 def simulador():
