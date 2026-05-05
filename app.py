@@ -87,7 +87,7 @@ def tabla():
     df2 = pd.read_csv(ruta_csv)
 
     if busqueda:
-        df_filtrado = df2[df2['job_title'] == busqueda]
+        df_filtrado = df2[df2['job_title'] == busqueda.title()]
         resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%'))\
                           .order_by(Empleo.experience_years.asc()).all()
     else:
