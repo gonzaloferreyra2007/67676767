@@ -10,63 +10,91 @@
             <div class="card-body p-4">
                 <form method="POST">
                     <div class="row g-3">
+                        <!-- Puesto de Trabajo -->
                         <div class="col-md-6">
-                            <label class="form-label">Puesto de Trabajo</label>
+                            <label class="form-label fw-bold">Puesto de Trabajo</label>
                             <select name="puesto" class="form-select">
                                 <option value="">Cualquiera</option>
-                                {% for p in puestos %}<option value="{{p}}">{{p}}</option>{% endfor %}
+                                {% for p in puestos %}
+                                    <option value="{{p}}" {% if seleccion.puesto == p %}selected{% endif %}>{{p}}</option>
+                                {% endfor %}
                             </select>
                         </div>
+
+                        <!-- Industria -->
                         <div class="col-md-6">
-                            <label class="form-label">Industria</label>
+                            <label class="form-label fw-bold">Industria</label>
                             <select name="industria" class="form-select">
                                 <option value="">Cualquiera</option>
-                                {% for i in industrias %}<option value="{{i}}">{{i}}</option>{% endfor %}
+                                {% for i in industrias %}
+                                    <option value="{{i}}" {% if seleccion.industria == i %}selected{% endif %}>{{i}}</option>
+                                {% endfor %}
                             </select>
                         </div>
+
+                        <!-- Años de Experiencia -->
                         <div class="col-md-4">
-                            <label class="form-label">Años de Experiencia</label>
-                            <input type="number" name="experiencia" class="form-control" placeholder="Ej: 5">
+                            <label class="form-label fw-bold">Años de Experiencia</label>
+                            <input type="number" name="experiencia" class="form-control" 
+                                   value="{{ seleccion.experiencia }}" placeholder="Ej: 5">
                         </div>
+
+                        <!-- Nivel de Educación -->
                         <div class="col-md-4">
-                            <label class="form-label">Nivel de Educación</label>
+                            <label class="form-label fw-bold">Nivel de Educación</label>
                             <select name="educacion" class="form-select">
                                 <option value="">Cualquiera</option>
-                                {% for e in educacion %}<option value="{{e}}">{{e}}</option>{% endfor %}
+                                {% for e in educacion %}
+                                    <option value="{{e}}" {% if seleccion.educacion == e %}selected{% endif %}>{{e}}</option>
+                                {% endfor %}
                             </select>
                         </div>
+
+                        <!-- Tamaño de Empresa -->
                         <div class="col-md-4">
-                            <label class="form-label">Tamaño de Empresa</label>
+                            <label class="form-label fw-bold">Tamaño de Empresa</label>
                             <select name="tamano" class="form-select">
                                 <option value="">Cualquiera</option>
-                                {% for t in tamanos %}<option value="{{t}}">{{t}}</option>{% endfor %}
+                                {% for t in tamanos %}
+                                    <option value="{{t}}" {% if seleccion.tamano == t %}selected{% endif %}>{{t}}</option>
+                                {% endfor %}
                             </select>
                         </div>
+
+                        <!-- Ubicación -->
                         <div class="col-md-6">
-                            <label class="form-label">Ubicación</label>
+                            <label class="form-label fw-bold">Ubicación</label>
                             <select name="ubicacion" class="form-select">
                                 <option value="">Cualquiera</option>
-                                {% for u in ubicaciones %}<option value="{{u}}">{{u}}</option>{% endfor %}
+                                {% for u in ubicaciones %}
+                                    <option value="{{u}}" {% if seleccion.ubicacion == u %}selected{% endif %}>{{u}}</option>
+                                {% endfor %}
                             </select>
                         </div>
+
+                        <!-- Remoto -->
                         <div class="col-md-6">
-                            <label class="form-label">¿Es Remoto?</label>
+                            <label class="form-label fw-bold">¿Es Remoto?</label>
                             <select name="remoto" class="form-select">
                                 <option value="">No importa</option>
-                                <option value="Yes">Sí, es remoto</option>
-                                <option value="No">No, es presencial</option>
+                                <option value="Yes" {% if seleccion.remoto == 'Yes' %}selected{% endif %}>Sí, es remoto</option>
+                                <option value="No" {% if seleccion.remoto == 'No' %}selected{% endif %}>No, es presencial</option>
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold">Calcular Salario Estimado</button>
+                    <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold shadow-sm">Calcular Salario Estimado</button>
                 </form>
 
                 {% if resultado %}
                 <div class="mt-5 p-4 bg-light rounded-3 text-center border">
                     <h5 class="text-muted text-uppercase small">Resultado de la Simulación</h5>
+                    <p class="text-muted small">
+                        <i class="bi bi-info-circle"></i> Análisis basado en <strong>{{ cantidad_coincidencias }}</strong> perfiles similares encontrados.
+                    </p>
+                    
                     {% if resultado is number %}
                         <h2 class="display-4 fw-bold text-success">${{ "{:,.2f}".format(resultado) }}</h2>
-                        <p class="mb-0 mt-2 text-muted">Promedio anual estimado basado en perfiles similares.</p>
+                        <p class="mb-0 mt-2 text-muted">Promedio anual estimado según los filtros aplicados.</p>
                     {% else %}
                         <h4 class="text-danger">{{ resultado }}</h4>
                     {% endif %}

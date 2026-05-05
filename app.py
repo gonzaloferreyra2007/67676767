@@ -15,7 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///empleos.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# 1. Modelo de base de datos (coincide con las columnas de tu CSV)
+# 1. Modelo de base de datos
 class Empleo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_title = db.Column(db.String(100))
@@ -29,7 +29,7 @@ class Empleo(db.Model):
     certifications = db.Column(db.Integer)
     salary = db.Column(db.Float)
 
-# 2. Configuración de carpetas para los gráficos de Matplotlib
+# 2. Configuración de carpetas para gráficos estáticos
 CHARTS_FOLDER = os.path.join('static', 'charts')
 if not os.path.exists(CHARTS_FOLDER):
     os.makedirs(CHARTS_FOLDER)
@@ -38,48 +38,30 @@ if not os.path.exists(CHARTS_FOLDER):
 def cargar_datos():
     with app.app_context():
         db.create_all()
-        # Verificamos si la base ya tiene datos para no duplicar
         if not Empleo.query.first():
-            # Construimos la ruta a la carpeta data/
             ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
-            
             if os.path.exists(ruta_csv):
                 df = pd.read_csv(ruta_csv)
-                # Cargamos los datos del DataFrame a la tabla 'empleo' de SQL
                 df.to_sql('empleo', con=db.engine, if_exists='append', index=False)
                 print("¡Base de datos cargada con éxito!")
             else:
                 print(f"Error: No se encontró el archivo CSV en {ruta_csv}")
 
-# --- IMPORTANTE: Se cargan los datos antes de que el servidor empiece a escuchar ---
 cargar_datos()
 
-# 4. Ruta Principal: Dashboard
+# 4. Ruta Principal: Dashboard (Matplotlib)
 @app.route('/')
 def index():
     ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
     df = pd.read_csv(ruta_csv)
     
-    # 1. Agrupamos por industria y calculamos el promedio REAL de cada una
-    # Usamos .reset_index() para que Pandas no se confunda
     data_grafico = df.groupby('industry')['salary'].mean().sort_values(ascending=True)
-
-    # 2. Creamos el gráfico con un tamaño que le dé aire
     plt.figure(figsize=(10, 6))
-    
-    # Usamos colores variados (un degradado) para que se note la distinción
     colores = plt.cm.viridis(np.linspace(0, 1, len(data_grafico)))
-    
     data_grafico.plot(kind='barh', color=colores)
 
-    # 3. Ajustamos el eje X para que empiece un poco antes del mínimo 
-    # Esto hace que las diferencias se vean más grandes
-    # 1. Obtenemos el mínimo y el máximo de los promedios
     min_promedio = data_grafico.min()
     max_promedio = data_grafico.max()
-
-    # 2. Ajustamos el zoom: 
-    # Que empiece un 1% abajo del mínimo y termine un 1% arriba del máximo
     plt.xlim(min_promedio * 0.99, max_promedio * 1.01)
 
     plt.title('Diferencias Salariales por Industria', fontsize=14, pad=15)
@@ -88,52 +70,62 @@ def index():
     plt.grid(axis='x', linestyle='--', alpha=0.3)
     
     plt.tight_layout()
-    
     nombre_grafico = "salario_industria.png"
     plt.savefig(os.path.join(CHARTS_FOLDER, nombre_grafico))
     plt.close()   
-    total_empleos = len(df)
-    promedio_gral = round(df['salary'].mean(), 2)
 
     return render_template('tp3.html', 
                            imagen=nombre_grafico, 
-                           total=total_empleos, 
-                           promedio=promedio_gral)
+                           total=len(df), 
+                           promedio=round(df['salary'].mean(), 2))
 
-# 5. Ruta de Tabla con Buscador
+# 5. Ruta de Tabla y Gráfico Interactivo (Plotly) - MEJORADA
 @app.route('/tabla', methods=['GET', 'POST'])
 def tabla():
-    #En "busqueda" guardamos lo que es lo que se subio en el form de HTML
     busqueda = request.args.get('query', '')
-    # Este dataFrame es para el gráfico interactivo.  
-    df2 = pd.read_csv('data/job_salary_prediction_dataset.csv')
+    ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
+    df2 = pd.read_csv(ruta_csv)
 
     if busqueda:
         df_filtrado = df2[df2['job_title'] == busqueda]
-        # Buscamos en la base de datos registros que contengan el texto
-        resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%')).all()
+        resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%'))\
+                          .order_by(Empleo.experience_years.asc()).all()
     else:
         df_filtrado = df2
-        # Si no hay búsqueda, mostramos los primeros 100 para que cargue rápido
-        resultados = Empleo.query.limit(100).all()
+        resultados = Empleo.query.order_by(Empleo.experience_years.asc()).limit(100).all()
     
-    # Crea el gráfico con Plotly.express (px)
-    fig = px.scatter(df_filtrado, x="experience_years", y="salary", 
-                     color="education_level", 
-                     title="Relación Experiencia vs Salario",
-                     hover_data=["job_title", "remote_work"], # Información extra al pasar el mouse
-                     labels={
-                        "experience_years": "Experiencia (Años)",
-                        "salary": "Sueldo ($)",
-                        "job_title": "Puesto",
-                        "education_level": "Nivel Educativo",
-                        "remote_work": "Remoto",
-                        "industry": "Industria", 
-                        "remote_work":"Remoto"})
-    
+    # Creación del Boxplot
+    fig = px.box(
+        df_filtrado, 
+        x="experience_years", 
+        y="salary", 
+        color="education_level",
+        points=False, 
+        notched=True, 
+        labels={
+            "experience_years": "Años de Experiencia",
+            "salary": "Salario Anual (USD)"
+        }
+    )
+
+    # Mejora 1: Etiquetas en español y formato moneda ($)
+    fig.update_traces(
+        hovertemplate="""
+        <b>%{x}</b><br><br>
+        Máximo: %{max:$,.0f}<br>
+        Prom. Máximo (Q3): %{q3:$,.0f}<br>
+        Mediana: %{median:$,.0f}<br>
+        Prom. Mínimo (Q1): %{q1:$,.0f}<br>
+        Mínimo: %{min:$,.0f}
+        <extra></extra>
+        """
+    )
+
+    #Inicia solo con un nivel visible para evitar desorden visual
+    fig.update_layout(showlegend=True, legend_title_text="Niveles")
+    # Esto deja visible 'Bachelor' y oculta los demás en la leyenda (clic para activar)
     fig.for_each_trace(lambda t: t.update(visible=True if t.name == "Bachelor" else "legendonly"))
     
-    # Convierte el gráfico a HTML (solo hace el div)
     graph_html = fig.to_html(full_html=False)
 
     return render_template('tabla.html',
@@ -141,57 +133,51 @@ def tabla():
                            busqueda=busqueda,
                            plot_div=graph_html)
 
+# 6. Simulador de Salarios
 @app.route('/simuladores', methods=['GET', 'POST'])
 def simulador():
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv'))
+    ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
+    df = pd.read_csv(ruta_csv)
     
-    # Obtenemos las listas únicas para llenar los desplegables del formulario
-    industrias = sorted(df['industry'].unique())
-    puestos = sorted(df['job_title'].unique())
-    educacion = sorted(df['education_level'].unique())
-    tamanos = sorted(df['company_size'].unique())
-    ubicaciones = sorted(df['location'].unique())
-
+    cantidad = 0
     resultado_simulado = None
+    seleccion = {} 
 
     if request.method == 'POST':
-        # Capturamos lo que el usuario eligió
-        f_puesto = request.form.get('puesto')
-        f_industria = request.form.get('industria')
-        f_exp = request.form.get('experiencia')
-        f_edu = request.form.get('educacion')
-        f_tamano = request.form.get('tamano')
-        f_loc = request.form.get('ubicacion')
-        f_remoto = request.form.get('remoto')
+        seleccion = {
+            'puesto': request.form.get('puesto'),
+            'industria': request.form.get('industria'),
+            'experiencia': request.form.get('experiencia'),
+            'educacion': request.form.get('educacion'),
+            'tamano': request.form.get('tamano'),
+            'ubicacion': request.form.get('ubicacion'),
+            'remoto': request.form.get('remoto')
+        }
 
-        # Empezamos a filtrar el DataFrame
         query = df.copy()
-        if f_puesto: query = query[query['job_title'] == f_puesto]
-        if f_industria: query = query[query['industry'] == f_industria]
-        if f_edu: query = query[query['education_level'] == f_edu]
-        if f_tamano: query = query[query['company_size'] == f_tamano]
-        if f_loc: query = query[query['location'] == f_loc]
-        if f_remoto: query = query[query['remote_work'] == f_remoto]
+        if seleccion['puesto']: query = query[query['job_title'] == seleccion['puesto']]
+        if seleccion['industria']: query = query[query['industry'] == seleccion['industria']]
+        if seleccion['educacion']: query = query[query['education_level'] == seleccion['educacion']]
+        if seleccion['tamano']: query = query[query['company_size'] == seleccion['tamano']]
+        if seleccion['ubicacion']: query = query[query['location'] == seleccion['ubicacion']]
+        if seleccion['remoto']: query = query[query['remote_work'] == seleccion['remoto']]
         
-        # Para la experiencia, buscamos valores cercanos (rango de +/- 2 años)
-        if f_exp:
-            exp_val = int(f_exp)
+        if seleccion['experiencia']:
+            exp_val = int(seleccion['experiencia'])
             query = query[(query['experience_years'] >= exp_val - 2) & (query['experience_years'] <= exp_val + 2)]
-
-        # Calculamos el promedio de los resultados filtrados
-        if not query.empty:
-            resultado_simulado = round(query['salary'].mean(), 2)
-        else:
-            resultado_simulado = "No hay datos suficientes para esta combinación"
+        
+        cantidad = len(query)
+        resultado_simulado = round(query['salary'].mean(), 2) if not query.empty else "Sin datos"
 
     return render_template('simulador.html', 
-                           industrias=industrias, 
-                           puestos=puestos, 
-                           educacion=educacion,
-                           tamanos=tamanos,
-                           ubicaciones=ubicaciones,
-                           resultado=resultado_simulado)
+                           industrias=sorted(df['industry'].unique()), 
+                           puestos=sorted(df['job_title'].unique()), 
+                           educacion=sorted(df['education_level'].unique()),
+                           tamanos=sorted(df['company_size'].unique()),
+                           ubicaciones=sorted(df['location'].unique()),
+                           resultado=resultado_simulado,
+                           cantidad_coincidencias=cantidad,
+                           seleccion=seleccion) 
 
 if __name__ == '__main__':
-    # El cargar_datos() ya se ejecutó arriba, ahora iniciamos la app
     app.run(debug=True)

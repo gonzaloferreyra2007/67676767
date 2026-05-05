@@ -28,24 +28,26 @@
         </div>
 
         <div class="table-responsive bg-white p-3 rounded shadow-sm">
-            <table class="table table-striped table-hover">
+           <table class="table table-hover">
                 <thead class="table-dark">
                     <tr>
                         <th>Puesto</th>
                         <th>Industria</th>
+                        <th>Educación</th> 
                         <th>Experiencia (Años)</th>
-                        <th>Salario</th>
-                        <th>Remoto</th>
+                        <th>Salario (USD)</th>
+                        <th>Ubicación</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for e in empleos %}
+                    {% for empleo in empleos %}
                     <tr>
-                        <td>{{ e.job_title }}</td>
-                        <td>{{ e.industry }}</td>
-                        <td>{{ e.experience_years }}</td>
-                        <td>${{ "{:,.2f}".format(e.salary) }}</td>
-                        <td>{{ e.remote_work }}</td>
+                        <td>{{ empleo.job_title }}</td>
+                        <td>{{ empleo.industry }}</td>
+                        <td>{{ empleo.education_level }}</td> <!-- Texto plano, sin resaltado -->
+                        <td>{{ empleo.experience_years }}</td>
+                        <td>${{ "{:,.2f}".format(empleo.salary) }}</td>
+                        <td>{{ empleo.location }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
