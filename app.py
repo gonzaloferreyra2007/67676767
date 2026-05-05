@@ -79,19 +79,27 @@ def index():
                            total=len(df), 
                            promedio=round(df['salary'].mean(), 2))
 
-# 5. Ruta de Tabla y Gráfico Interactivo (Plotly) - MEJORADA
-@app.route('/tabla', methods=['GET', 'POST'])
+# 5. Ruta de Tabla y Gráfico Interactivo (ACTUALIZADA CON SELECTOR)
+@app.route('/tabla', methods=['GET'])
 def tabla():
+    # Obtener el puesto seleccionado del dropdown
     busqueda = request.args.get('query', '')
+    
     ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
     df2 = pd.read_csv(ruta_csv)
+    
+    # Lista de puestos únicos para el selector del template
+    lista_puestos = sorted(df2['job_title'].unique())
 
     if busqueda:
-        df_filtrado = df2[df2['job_title'] == busqueda.title()]
-        resultados = Empleo.query.filter(Empleo.job_title.like(f'%{busqueda}%'))\
+        # Filtrado exacto para el gráfico de Plotly
+        df_filtrado = df2[df2['job_title'] == busqueda]
+        # Filtrado exacto en la base de datos ordenado por experiencia
+        resultados = Empleo.query.filter_by(job_title=busqueda)\
                           .order_by(Empleo.experience_years.asc()).all()
     else:
         df_filtrado = df2
+        # Si no hay búsqueda, mostramos los primeros 100 registros generales
         resultados = Empleo.query.order_by(Empleo.experience_years.asc()).limit(100).all()
     
     # Creación del Boxplot
@@ -108,10 +116,9 @@ def tabla():
         }
     )
 
-    # Mejora 1: Etiquetas en español y formato moneda ($)
     fig.update_traces(
         hovertemplate="""
-        <b>%{x}</b><br><br>
+        <b>%{x} Años de Exp.</b><br><br>
         Máximo: %{max:$,.0f}<br>
         Prom. Máximo (Q3): %{q3:$,.0f}<br>
         Mediana: %{median:$,.0f}<br>
@@ -121,15 +128,14 @@ def tabla():
         """
     )
 
-    #Inicia solo con un nivel visible para evitar desorden visual
-    fig.update_layout(showlegend=True, legend_title_text="Niveles")
-    # Esto deja visible 'Bachelor' y oculta los demás en la leyenda (clic para activar)
+    fig.update_layout(showlegend=True, legend_title_text="Niveles de Educación")
     fig.for_each_trace(lambda t: t.update(visible=True if t.name == "Bachelor" else "legendonly"))
     
     graph_html = fig.to_html(full_html=False)
 
     return render_template('tabla.html',
                            empleos=resultados,
+                           puestos=lista_puestos, # Nueva variable para el select
                            busqueda=busqueda,
                            plot_div=graph_html)
 
