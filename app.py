@@ -79,7 +79,7 @@ def index():
                            total=len(df), 
                            promedio=round(df['salary'].mean(), 2))
 
-# 5. Ruta de Tabla y Gráfico Interactivo (Plotly) - MEJORADA
+# 5. Ruta de Tabla y Gráfico Interactivo (Plotly)
 @app.route('/tabla', methods=['GET', 'POST'])
 def tabla():
     busqueda = request.args.get('query', '')
@@ -108,7 +108,7 @@ def tabla():
         }
     )
 
-    # Mejora 1: Etiquetas en español y formato moneda ($)
+    #Etiquetas en español y formato moneda ($)
     fig.update_traces(
         hovertemplate="""
         <b>%{x}</b><br><br>
@@ -121,7 +121,7 @@ def tabla():
         """
     )
 
-    #Inicia solo con un nivel visible para evitar desorden visual
+    # Inicia solo con un nivel visible para evitar desorden visual
     fig.update_layout(showlegend=True, legend_title_text="Niveles")
     # Esto deja visible 'Bachelor' y oculta los demás en la leyenda (clic para activar)
     fig.for_each_trace(lambda t: t.update(visible=True if t.name == "Bachelor" else "legendonly"))
@@ -133,7 +133,7 @@ def tabla():
                            busqueda=busqueda,
                            plot_div=graph_html)
 
-# 6. Simulador de Salarios
+# Simulador de Salarios
 @app.route('/simuladores', methods=['GET', 'POST'])
 def simulador():
     ruta_csv = os.path.join(os.path.dirname(__file__), 'data', 'job_salary_prediction_dataset.csv')
