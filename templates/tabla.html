@@ -5,9 +5,9 @@
 
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Base de Datos de Empleos</h1>
+            <h1>Data Base of Employees</h1>
             <a href="/" class="btn btn-secondary shadow-sm">
-                <i class="bi bi-house-door"></i> Volver al Inicio
+                <i class="bi bi-house-door"></i> Back to Home
             </a>
         </div>
 
@@ -16,9 +16,9 @@
             <div class="card-body">
                 <form action="/tabla" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-8">
-                        <label class="form-label fw-bold text-muted">Seleccionar Puesto de Trabajo</label>
+                        <label class="form-label fw-bold text-muted">Select Job Title</label>
                         <select name="query" class="form-select shadow-sm">
-                            <option value="">-- Ver todos los puestos (Top 100) --</option>
+                            <option value="">-- View all the job titles (Top 100) --</option>
                             {% for puesto in puestos %}
                                 <option value="{{ puesto }}" {% if busqueda == puesto %}selected{% endif %}>
                                     {{ puesto }}
@@ -29,11 +29,11 @@
                     <div class="col-md-4">
                         <div class="d-grid gap-2 d-md-flex">
                             <button class="btn btn-primary flex-grow-1 fw-bold shadow-sm" type="submit">
-                                <i class="bi bi-filter"></i> Filtrar Datos
+                                <i class="bi bi-filter"></i> Filter Data
                             </button>
                             {% if busqueda %}
                                 <a href="/tabla" class="btn btn-outline-secondary">
-                                    Limpiar
+                                    Clean
                                 </a>
                             {% endif %}
                         </div>
@@ -44,12 +44,12 @@
 
         <!-- Sección de Gráfico -->
         <div class="container px-0">
-            <h2 class="mt-5 mb-3">Gráfico de la Búsqueda</h2>
+            <h2 class="mt-5 mb-3">Search Graphic</h2>
             <div class="card shadow-sm border-0 mb-5">
                 <div class="card-body">
                     <div class="alert alert-info border-0 shadow-sm mb-3" role="alert">
                         <i class="bi bi-info-circle-fill"></i> 
-                        <strong>Análisis interactivo:</strong> Haz clic en los elementos de la leyenda para filtrar los datos por nivel educativo.
+                        <strong>Interactive Analysis:</strong> Click on the legend items to filter the data by educational level.
                     </div>
                     {{ plot_div | safe }}
                 </div>
@@ -61,12 +61,12 @@
             <table class="table table-hover align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>Puesto</th>
-                        <th>Industria</th>
-                        <th>Educación</th> 
-                        <th>Experiencia (Años)</th>
-                        <th>Salario (USD)</th>
-                        <th>Ubicación</th>
+                        <th>Position</th>
+                        <th>Industry</th>
+                        <th>Education</th> 
+                        <th>Experience (Years)</th>
+                        <th>Salary (USD)</th>
+                        <th>Location</th>
                     </tr>
                 </thead>
                 <tbody>

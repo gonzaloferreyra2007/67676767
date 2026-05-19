@@ -4,9 +4,9 @@
 <body>
     <div class="p-5 mb-4 bg-light rounded-3 border">
         <div class="container-fluid py-5">
-            <h1 class="display-5 fw-bold">Predicción y Análisis de Salarios</h1>
-            <p class="col-md-8 fs-4">Explorá las tendencias del mercado laboral tecnológico, analizá sueldos por industria y descubrí cómo impacta la experiencia en tu carrera.</p>
-            <a href="/tabla" class="btn btn-primary btn-lg">Explorar Datos</a>
+            <h1 class="display-5 fw-bold">Salary Prediction and Analysis</h1>
+            <p class="col-md-8 fs-4">Explore the trends in the technology job market, analyze salaries by industry, and discover how experience impacts your career.</p>
+            <a href="/tabla" class="btn btn-primary btn-lg">Explore Data</a>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
         <div class="col-md-4">
             <div class="card border-primary shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title text-muted">Total de Registros</h5>
+                    <h5 class="card-title text-muted">Total Number of Records</h5>
                     <h2 class="display-6 fw-bold">{{ total }}</h2>
                 </div>
             </div>
@@ -22,7 +22,7 @@
         <div class="col-md-4">
             <div class="card border-success shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title text-muted">Salario Promedio</h5>
+                    <h5 class="card-title text-muted">Average Salary</h5>
                     <h2 class="display-6 fw-bold">${{ "{:,.2f}".format(promedio) }}</h2>
                 </div>
             </div>
@@ -30,7 +30,7 @@
         <div class="col-md-4">
             <div class="card border-info shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title text-muted">Industrias Analizadas</h5>
+                    <h5 class="card-title text-muted">Analized Industries</h5>
                     <h2 class="display-6 fw-bold">12</h2> </div>
             </div>
         </div>
@@ -40,11 +40,11 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Distribución Salarial por Industria</h5>
+                    <h5 class="mb-0">Salary Distribution by Industry</h5>
                 </div>
                 <div class="card-body text-center">
                     <img src="{{ url_for('static', filename='charts/' + imagen) }}" class="img-fluid rounded" alt="Gráfico de salarios">
-                    <p class="text-muted mt-3">Este gráfico muestra la relación entre los sectores económicos y la remuneración anual promedio.</p>
+                    <p class="text-muted mt-3">This chart shows the relationship between economic sectors and average annual remuneration.</p>
                 </div>
             </div>
         </div>

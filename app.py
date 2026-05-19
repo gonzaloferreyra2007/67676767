@@ -64,9 +64,9 @@ def index():
     max_promedio = data_grafico.max()
     plt.xlim(min_promedio * 0.99, max_promedio * 1.01)
 
-    plt.title('Diferencias Salariales por Industria', fontsize=14, pad=15)
-    plt.xlabel('Salario Anual Promedio (USD)')
-    plt.ylabel('Industria')
+    plt.title('Salary Differences by Industry', fontsize=14, pad=15)
+    plt.xlabel('Average Anual Salary (USD)')
+    plt.ylabel('Industry')
     plt.grid(axis='x', linestyle='--', alpha=0.3)
     
     plt.tight_layout()
@@ -111,25 +111,25 @@ def tabla():
         points=False, 
         notched=True, 
         labels={
-            "experience_years": "Años de Experiencia",
-            "salary": "Salario Anual (USD)"
+            "experience_years": "Experience Years",
+            "salary": "Anual Salary (USD)"
         }
     )
 
     #Etiquetas en español y formato moneda ($)
-    fig.update_traces(
-        hovertemplate="""
-        <b>%{x} Años de Exp.</b><br><br>
-        Máximo: %{max:$,.0f}<br>
-        Prom. Máximo (Q3): %{q3:$,.0f}<br>
-        Mediana: %{median:$,.0f}<br>
-        Prom. Mínimo (Q1): %{q1:$,.0f}<br>
-        Mínimo: %{min:$,.0f}
-        <extra></extra>
-        """
-    )
+    #fig.update_traces(
+    #    hovertemplate="""
+    #    <b>%{x} Años de Exp.</b><br><br>
+    #    Máximo: %{max:$,.0f}<br>
+    #    Prom. Máximo (Q3): %{q3:$,.0f}<br>
+    #    Mediana: %{median:$,.0f}<br>
+    #    Prom. Mínimo (Q1): %{q1:$,.0f}<br>
+    #    Mínimo: %{min:$,.0f}
+    #    <extra></extra>
+    #    """
+    #)
 
-    fig.update_layout(showlegend=True, legend_title_text="Niveles de Educación")
+    fig.update_layout(showlegend=True, legend_title_text="Education Levels")
     fig.for_each_trace(lambda t: t.update(visible=True if t.name == "Bachelor" else "legendonly"))
     
     graph_html = fig.to_html(full_html=False)
